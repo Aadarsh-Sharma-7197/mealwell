@@ -46,7 +46,7 @@ export default function MainLayout({ children }) {
             <div>
               <h4 className="font-bold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>📧 teamkreovix@gmail.com</li>
+                <li>📧 mealwell@gmail.com</li>
                 <li>📱 +91 98719 71874</li>
                 <li>📍 India</li>
               </ul>

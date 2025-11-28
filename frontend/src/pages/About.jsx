@@ -39,22 +39,28 @@ export default function About() {
 
   const team = [
     {
-      name: 'Priya Sharma',
-      role: 'Founder & CEO',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop',
-      bio: 'Nutritionist with 10+ years of experience'
+      name: 'Aadarsh Sharma',
+      role: 'Developer',
+      image: '',
+      bio: ''
     },
     {
-      name: 'Rahul Gupta',
-      role: 'CTO',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop',
-      bio: 'AI/ML expert from IIT Delhi'
+      name: 'Aman Gupta',
+      role: 'Developer',
+      image: '',
+      bio: ''
     },
     {
-      name: 'Anjali Verma',
-      role: 'Head of Operations',
-      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop',
-      bio: 'Operations specialist with food tech background'
+      name: 'Abhilasha Sharma',
+      role: 'Developer',
+      image: '',
+      bio: ''
+    },
+    {
+      name: 'Nikhil Gupta',
+      role: 'Developer',
+      image: '',
+      bio: ''
     }
   ];
 
@@ -206,7 +212,7 @@ export default function About() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             {team.map((member, i) => (
               <motion.div
                 key={member.name}

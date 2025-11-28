@@ -7,8 +7,8 @@ export default function Profile() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: user?.name || 'Alex Kumar',
-    email: user?.email || 'alex@example.com',
+    name: user?.name || 'Aman Kumar',
+    email: user?.email || 'aman@example.com',
     phone: user?.phone || '+91 98765 43210',
     address: '123, Green Park, New Delhi - 110016',
     bio: 'Health enthusiast on a journey to better nutrition',

@@ -12,7 +12,7 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Mock login - in real app, validate with backend
-    login({ name: 'Alex Kumar', email }, 'customer');
+    login({ name: 'Aman Kumar', email }, 'customer');
   };
 
   return (

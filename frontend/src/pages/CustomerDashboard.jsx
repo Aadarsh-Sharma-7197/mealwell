@@ -35,7 +35,7 @@ export default function CustomerDashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
-            <h1 className="text-4xl font-black text-gray-900 mb-2">Welcome back, Alex!</h1>
+            <h1 className="text-4xl font-black text-gray-900 mb-2">Welcome back, Aman!</h1>
             <p className="text-gray-600">Here's your nutrition overview for today</p>
           </div>
           <div className="flex gap-3 mt-4 md:mt-0">
@@ -177,7 +177,7 @@ export default function CustomerDashboard() {
                       stroke="currentColor"
                       strokeWidth="12"
                       fill="transparent"
-                      className="text-white/30"
+                      className="text-white/30 "
                     />
                     <circle
                       cx="64"
@@ -193,8 +193,8 @@ export default function CustomerDashboard() {
                     />
                   </svg>
                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                    <div className="text-3xl font-black">72%</div>
-                    <div className="text-xs opacity-80">Complete</div>
+                    <div className="text-3xl font-black ">72%</div>
+                    <div className="text-xs opacity-80 mb-15">Complete</div>
                   </div>
                 </div>
                 <div className="text-center">
