@@ -24,6 +24,7 @@ import Profile from './pages/Profile';
 import Checkout from './pages/Checkout';
 import ChefMenu from './pages/ChefMenu';
 import NotFound from './pages/NotFound';
+import CreateDietPlan from './pages/CreateDietPlan';
 
 function AppContent() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -119,7 +120,7 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-
+          <Route path="/create-diet-plan" element={<CreateDietPlan />} />
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>

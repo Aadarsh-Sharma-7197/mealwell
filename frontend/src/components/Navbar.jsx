@@ -4,10 +4,12 @@ import { Menu, X, User, LogOut, Settings as SettingsIcon, LayoutDashboard } from
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50 backdrop-blur-lg bg-white/90">
@@ -42,11 +44,17 @@ export default function Navbar() {
               </Link>
             </li>
             <li>
+              <Link to="/create-diet-plan" className="text-gray-700 hover:text-emerald-600 transition font-medium">
+                Create Diet Plan
+              </Link>
+            </li>
+            <li>
               <Link to="/become-chef" className="text-gray-700 hover:text-emerald-600 transition font-medium">
                 Become a Chef
               </Link>
             </li>
           </ul>
+
 
           {/* Desktop Auth/User Menu */}
           <div className="hidden lg:flex items-center gap-3">
@@ -61,9 +69,10 @@ export default function Navbar() {
                   </div>
                   <div className="text-left">
                     <div className="font-bold text-gray-900 text-sm">{user?.name || 'User'}</div>
-                    <div className="text-xs text-gray-500 capitalize">{user?.type || 'customer'}</div>
+                    <div className="text-xs text-gray-500 capitalize">{user?.userType || 'customer'}</div>
                   </div>
                 </button>
+
 
                 {/* User Dropdown Menu */}
                 <AnimatePresence>
@@ -75,7 +84,7 @@ export default function Navbar() {
                       className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2"
                     >
                       <Link
-                        to={user?.type === 'chef' ? '/chef' : '/customer'}
+                        to={user?.userType === 'chef' ? '/chef' : '/customer'}
                         onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-all"
                       >
@@ -131,6 +140,7 @@ export default function Navbar() {
             )}
           </div>
 
+
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -140,6 +150,7 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -190,6 +201,15 @@ export default function Navbar() {
                 </li>
                 <li>
                   <Link
+                    to="/create-diet-plan"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block py-2 text-gray-700 hover:text-emerald-600 transition font-medium"
+                  >
+                    Create Diet Plan
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/become-chef"
                     onClick={() => setMobileMenuOpen(false)}
                     className="block py-2 text-gray-700 hover:text-emerald-600 transition font-medium"
@@ -198,6 +218,7 @@ export default function Navbar() {
                   </Link>
                 </li>
               </ul>
+
 
               {/* Mobile Auth Section */}
               {isAuthenticated ? (
@@ -208,11 +229,11 @@ export default function Navbar() {
                     </div>
                     <div>
                       <div className="font-bold text-gray-900">{user?.name || 'User'}</div>
-                      <div className="text-sm text-gray-500 capitalize">{user?.type || 'customer'}</div>
+                      <div className="text-sm text-gray-500 capitalize">{user?.userType || 'customer'}</div>
                     </div>
                   </div>
                   <Link
-                    to={user?.type === 'chef' ? '/chef' : '/customer'}
+                    to={user?.userType === 'chef' ? '/chef' : '/customer'}
                     onClick={() => setMobileMenuOpen(false)}
                     className="block px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-semibold text-center"
                   >
