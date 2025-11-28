@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, MapPin, Lock, Bell, CreditCard, Shield, HelpCircle, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
-
+  const {logout} = useAuth();
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'preferences', label: 'Preferences', icon: Bell },
@@ -41,10 +43,14 @@ export default function Settings() {
                     {tab.label}
                   </button>
                 ))}
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-red-600 hover:bg-red-50 transition-all mt-4">
+                <Link to='/'>
+                <button onClick={() => {
+                          logout();
+                        }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-red-600 hover:bg-red-50 transition-all mt-4">                  
                   <LogOut className="w-5 h-5" />
                   Logout
                 </button>
+                </Link>
               </nav>
             </div>
           </div>
