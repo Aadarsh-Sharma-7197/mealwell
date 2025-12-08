@@ -1,19 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const {
+  createOrder,
+  verifyPayment,
+  getPaymentHistory,
+} = require("../controllers/paymentController");
+const { auth } = require("../middleware/auth");
 
 // Create Razorpay order
-router.post('/create-order', (req, res) => {
-  res.json({ message: 'Create payment order - coming soon' });
-});
+router.post("/create-order", auth, createOrder);
 
 // Verify Razorpay payment
-router.post('/verify', (req, res) => {
-  res.json({ message: 'Verify payment - coming soon' });
-});
+router.post("/verify", auth, verifyPayment);
 
 // Get payment history
-router.get('/history', (req, res) => {
-  res.json({ message: 'Get payment history - coming soon' });
-});
+router.get("/history", auth, getPaymentHistory);
 
 module.exports = router;

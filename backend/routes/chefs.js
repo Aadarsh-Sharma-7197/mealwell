@@ -1,24 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const {
+  getAllChefs,
+  getChef,
+  updateChef,
+} = require("../controllers/chefController");
+const { auth } = require("../middleware/auth");
 
-// Get all chefs
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all chefs - coming soon' });
-});
+// Get all chefs (Public)
+router.get("/", getAllChefs);
 
-// Get single chef
-router.get('/:id', (req, res) => {
-  res.json({ message: 'Get single chef - coming soon' });
-});
+// Get single chef (Public)
+router.get("/:id", getChef);
 
-// Create chef profile
-router.post('/', (req, res) => {
-  res.json({ message: 'Create chef - coming soon' });
-});
-
-// Update chef profile
-router.put('/:id', (req, res) => {
-  res.json({ message: 'Update chef - coming soon' });
-});
+// Update chef profile (Private)
+router.put("/:id", auth, updateChef);
 
 module.exports = router;

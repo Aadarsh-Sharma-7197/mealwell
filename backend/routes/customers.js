@@ -1,19 +1,34 @@
 const express = require('express');
 const router = express.Router();
+const {
+  getProfile,
+  updateProfile,
+  getOrders,
+  subscribePlan,
+  addFavoriteChef,
+  removeFavoriteChef
+} = require('../controllers/customerController');
+const { auth } = require('../middleware/auth');
+
+// All routes require authentication
+router.use(auth);
 
 // Get customer profile
-router.get('/profile', (req, res) => {
-  res.json({ message: 'Get customer profile - coming soon' });
-});
+router.get('/profile', getProfile);
 
 // Update customer profile
-router.put('/profile', (req, res) => {
-  res.json({ message: 'Update customer profile - coming soon' });
-});
+router.put('/profile', updateProfile);
 
 // Get customer orders
-router.get('/orders', (req, res) => {
-  res.json({ message: 'Get customer orders - coming soon' });
-});
+router.get('/orders', getOrders);
+
+// Subscribe to plan
+router.post('/subscribe', subscribePlan);
+
+// Add chef to favorites
+router.post('/favorites/:chefId', addFavoriteChef);
+
+// Remove chef from favorites
+router.delete('/favorites/:chefId', removeFavoriteChef);
 
 module.exports = router;

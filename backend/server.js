@@ -1,7 +1,7 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const dotenv = require("dotenv");
 
 // Load environment variables
 dotenv.config();
@@ -9,82 +9,97 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      process.env.FRONTEND_URL,
+    ].filter(Boolean),
+    credentials: true,
+  })
+);
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/chefs', require('./routes/chefs'));
-app.use('/api/customers', require('./routes/customers'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/payments', require('./routes/payments'));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/users", require("./routes/users"));
+app.use("/api/ai", require("./routes/ai"));
+app.use("/api/chefs", require("./routes/chefs"));
+app.use("/api/customers", require("./routes/customers"));
+app.use("/api/orders", require("./routes/orders"));
+app.use("/api/dishes", require("./routes/dishes"));
+app.use("/api/plans", require("./routes/plans"));
+app.use("/api/payments", require("./routes/payments"));
+app.use("/api/health-stats", require("./routes/health"));
+app.use("/api/chef-applications", require("./routes/chefApplications"));
+app.use("/api/admin", require("./routes/admin"));
 
 // Health check route
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV 
+    environment: process.env.NODE_ENV,
   });
 });
 
 // Root route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'MealWell API Server',
-    version: '1.0.0',
+app.get("/", (req, res) => {
+  res.json({
+    message: "MealWell API Server",
+    version: "1.0.0",
     endpoints: {
-      auth: '/api/auth',
-      chefs: '/api/chefs',
-      customers: '/api/customers',
-      orders: '/api/orders',
-      payments: '/api/payments',
-      health: '/api/health'
-    }
+      auth: "/api/auth",
+      chefs: "/api/chefs",
+      customers: "/api/customers",
+      orders: "/api/orders",
+      payments: "/api/payments",
+      health: "/api/health",
+    },
   });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.stack);
-  res.status(err.status || 500).json({ 
-    message: err.message || 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err : {}
+  console.error("❌ Error:", err.stack);
+  res.status(err.status || 500).json({
+    message: err.message || "Something went wrong!",
+    error: process.env.NODE_ENV === "development" ? err : {},
   });
 });
 
 // 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+app.use("*", (req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 // Server setup
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB and start server
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('✅ Connected to MongoDB');
+    console.log("✅ Connected to MongoDB");
     console.log(`📦 Database: ${mongoose.connection.name}`);
-    
+
     app.listen(PORT, () => {
       console.log(`🚀 Backend server running on http://localhost:${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
       console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
     });
   })
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err.message);
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Rejection:', err.message);
+process.on("unhandledRejection", (err) => {
+  console.error("❌ Unhandled Rejection:", err.message);
   process.exit(1);
 });

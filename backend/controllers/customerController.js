@@ -7,7 +7,7 @@ const Order = require('../models/Order');
 // @access  Private (Customer only)
 exports.getProfile = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user.id })
+    const customer = await Customer.findOne({ userId: req.user._id })
       .populate('userId', 'name email phone profile')
       .populate('favoriteChefs');
 
@@ -36,7 +36,7 @@ exports.getProfile = async (req, res) => {
 // @access  Private (Customer only)
 exports.updateProfile = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user.id });
+    const customer = await Customer.findOne({ userId: req.user._id });
 
     if (!customer) {
       return res.status(404).json({ 
@@ -80,7 +80,7 @@ exports.getOrders = async (req, res) => {
   try {
     const { status, limit = 10, page = 1 } = req.query;
 
-    let filter = { customerId: req.user.id };
+    let filter = { customerId: req.user._id };
     if (status) filter.status = status;
 
     const orders = await Order.find(filter)
@@ -115,7 +115,7 @@ exports.subscribePlan = async (req, res) => {
   try {
     const { planId, planName, totalMeals, durationDays } = req.body;
 
-    const customer = await Customer.findOne({ userId: req.user.id });
+    const customer = await Customer.findOne({ userId: req.user._id });
 
     if (!customer) {
       return res.status(404).json({ 
@@ -168,7 +168,7 @@ exports.subscribePlan = async (req, res) => {
 // @access  Private (Customer only)
 exports.addFavoriteChef = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user.id });
+    const customer = await Customer.findOne({ userId: req.user._id });
 
     if (!customer) {
       return res.status(404).json({ 
@@ -208,7 +208,7 @@ exports.addFavoriteChef = async (req, res) => {
 // @access  Private (Customer only)
 exports.removeFavoriteChef = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user.id });
+    const customer = await Customer.findOne({ userId: req.user._id });
 
     if (!customer) {
       return res.status(404).json({ 

@@ -33,7 +33,7 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    if (order.customerId.toString() !== req.user.id) {
+    if (order.customerId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ 
         success: false,
         message: 'Not authorized' 
@@ -47,7 +47,7 @@ exports.createOrder = async (req, res) => {
       receipt: `order_${orderId}`,
       notes: {
         orderId: orderId,
-        customerId: req.user.id
+        customerId: req.user._id.toString()
       }
     };
 
@@ -125,7 +125,18 @@ exports.verifyPayment = async (req, res) => {
     order.status = 'confirmed';
     order.razorpayPaymentId = razorpay_payment_id;
     order.razorpaySignature = razorpay_signature;
+    order.finalAmount = order.totalAmount;
+    
+    // Initialize deliveryStatus if not exists
+    if (!order.deliveryStatus) {
+      order.deliveryStatus = {};
+    }
     order.deliveryStatus.confirmed = new Date();
+    
+    // Generate order number if not exists
+    if (!order.orderNumber) {
+      order.orderNumber = `ORD${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    }
 
     await order.save();
 
@@ -149,17 +160,50 @@ exports.verifyPayment = async (req, res) => {
 exports.getPaymentHistory = async (req, res) => {
   try {
     const orders = await Order.find({
-      customerId: req.user.id,
+      customerId: req.user._id.toString(),
       paymentStatus: 'paid'
     })
-      .select('orderNumber finalAmount paymentStatus razorpayPaymentId createdAt')
+      .populate('chefId')
+      .populate({
+        path: 'chefId',
+        populate: { path: 'userId', select: 'name profile' }
+      })
+      .select('orderNumber finalAmount totalAmount paymentStatus razorpayPaymentId razorpayOrderId items status deliveryAddress createdAt deliveryStatus')
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(50);
+
+    // Format the response with detailed information
+    const formattedPayments = orders.map(order => {
+      // Safely extract chef name
+      let chefName = 'N/A';
+      if (order.chefId) {
+        if (typeof order.chefId === 'object' && order.chefId.userId) {
+          chefName = order.chefId.userId.name || 'N/A';
+        } else if (typeof order.chefId === 'string') {
+          chefName = 'Chef';
+        }
+      }
+      
+      return {
+        _id: order._id,
+        orderNumber: order.orderNumber || order._id.toString().slice(-8).toUpperCase(),
+        amount: order.finalAmount || order.totalAmount,
+        paymentId: order.razorpayPaymentId,
+        razorpayOrderId: order.razorpayOrderId,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        items: order.items,
+        chefName: chefName,
+        deliveryAddress: order.deliveryAddress,
+        createdAt: order.createdAt,
+        deliveryStatus: order.deliveryStatus,
+      };
+    });
 
     res.json({
       success: true,
-      count: orders.length,
-      data: orders
+      count: formattedPayments.length,
+      data: formattedPayments
     });
   } catch (error) {
     console.error('Get payment history error:', error);

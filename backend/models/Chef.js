@@ -25,6 +25,10 @@ const chefSchema = new mongoose.Schema({
     type: String, 
     required: [true, 'Location is required']
   },
+  coordinates: {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
   cuisines: [{
     type: String,
     enum: ['Indian', 'Continental', 'Asian', 'Mediterranean', 'Vegan', 'Keto', 'All']

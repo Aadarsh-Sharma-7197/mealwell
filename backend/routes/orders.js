@@ -1,24 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const { auth } = require("../middleware/auth");
+const {
+  createOrder,
+  getOrders,
+  getOrderById,
+  updateOrderStatus,
+} = require("../controllers/orderController");
 
-// Get all orders
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all orders - coming soon' });
-});
+// All routes require authentication
+router.use(auth);
 
-// Create new order
-router.post('/', (req, res) => {
-  res.json({ message: 'Create order - coming soon' });
-});
-
-// Get single order
-router.get('/:id', (req, res) => {
-  res.json({ message: 'Get single order - coming soon' });
-});
-
-// Update order status
-router.put('/:id', (req, res) => {
-  res.json({ message: 'Update order - coming soon' });
-});
+router.post("/", createOrder);
+router.get("/", getOrders);
+router.get("/:id", getOrderById);
+router.patch("/:id/status", updateOrderStatus);
 
 module.exports = router;

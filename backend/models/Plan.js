@@ -30,6 +30,7 @@ const planSchema = new mongoose.Schema({
     required: true
   },
   features: [String],
+  notIncluded: [String],
   isActive: {
     type: Boolean,
     default: true

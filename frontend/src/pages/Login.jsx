@@ -1,157 +1,169 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Mail, Lock, Loader2, Shield } from "lucide-react";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Mock login - in real app, validate with backend
-    login({ name: 'Aman Kumar', email }, 'customer');
+    setError("");
+    setIsSubmitting(true);
+
+    const result = await login(email, password);
+
+    if (!result.success) {
+      setError(result.message);
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-5xl">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Side - Login Form */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="bg-white rounded-3xl shadow-2xl p-8 md:p-10 border border-gray-100"
-          >
-            <div className="mb-8">
-              <h1 className="text-4xl font-black text-gray-900 mb-2">Welcome Back!</h1>
-              <p className="text-gray-600">Sign in to continue your health journey</p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Admin Login Link in Corner */}
+      <Link
+        to="/admin/login"
+        className="absolute top-4 right-4 flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-emerald-600 transition-colors"
+        title="Admin Login"
+      >
+        <Shield className="w-4 h-4" />
+        <span className="hidden sm:inline">Admin</span>
+      </Link>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+              <p className="mt-2 text-gray-600">
+                Sign in to your MealWell account
+              </p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
+                <p>{error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
                   <input
                     type="email"
-                    placeholder="you@example.com"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="you@example.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
                   <input
                     type="password"
-                    placeholder="Enter your password"
+                    required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="••••••••"
                   />
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="remember" className="w-4 h-4 text-emerald-600" />
-                  <label htmlFor="remember" className="text-sm text-gray-600">Remember me</label>
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-2 block text-sm text-gray-900"
+                  >
+                    Remember me
+                  </label>
                 </div>
-                <a href="#" className="text-sm text-emerald-600 font-semibold hover:text-emerald-700">
-                  Forgot Password?
-                </a>
+
+                <div className="text-sm">
+                  <a
+                    href="#"
+                    className="font-medium text-emerald-600 hover:text-emerald-500"
+                  >
+                    Forgot your password?
+                  </a>
+                </div>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 type="submit"
-                className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Sign In
-                <ArrowRight className="w-5 h-5" />
-              </motion.button>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-emerald-600 font-bold hover:text-emerald-700">
-                  Sign Up
+            <div className="mt-6 space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">
+                  Don't have an account?{" "}
+                  <Link
+                    to="/signup"
+                    className="font-medium text-emerald-600 hover:text-emerald-500"
+                  >
+                    Sign up
+                  </Link>
+                </p>
+              </div>
+              
+              {/* Admin Login Button */}
+              <div className="pt-4 border-t border-gray-200">
+                <Link
+                  to="/admin/login"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin Login
                 </Link>
-              </p>
+              </div>
             </div>
-          </motion.div>
-
-          {/* Right Side - Images & Testimonials */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="hidden lg:block relative"
-          >
-            <div className="relative">
-              <motion.div
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="bg-gradient-to-br from-emerald-100 to-green-100 rounded-3xl p-12 shadow-xl"
-              >
-                <div className="text-center mb-8">
-                  <img 
-                    src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&auto=format&fit=crop"
-                    alt="Healthy Food"
-                    className="w-32 h-32 rounded-2xl mx-auto mb-4 object-cover shadow-lg"
-                  />
-                  <h3 className="text-3xl font-black text-gray-900 mb-2">10,000+ Users</h3>
-                  <p className="text-gray-600">Trust MealWell for their nutrition</p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&auto=format&fit=crop"
-                        alt="User"
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                      <div className="flex-grow">
-                        <div className="font-bold text-gray-900">Lost 15kg in 3 months!</div>
-                        <div className="text-sm text-gray-600">- Amit Sharma</div>
-                      </div>
-                      <div className="text-yellow-400 text-xl">⭐⭐⭐⭐⭐</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop"
-                        alt="User"
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                      <div className="flex-grow">
-                        <div className="font-bold text-gray-900">Perfect for my diabetes!</div>
-                        <div className="text-sm text-gray-600">- Priya Kumar</div>
-                      </div>
-                      <div className="text-yellow-400 text-xl">⭐⭐⭐⭐⭐</div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
