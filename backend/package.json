@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "seed:chef": "node scripts/seedChefDashboard.js",
+    "check": "node -e \"console.log('Node.js version:', process.version); console.log('✅ Node.js is ready')\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

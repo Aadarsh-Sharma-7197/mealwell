@@ -65,7 +65,7 @@ export default function MainLayout({ children }) {
           </div>
           
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© 2025 MealWell by Abhilasha Coder. All rights reserved.</p>
+            <p>© 2025 MealWell by CodeCatalyst. All rights reserved.</p>
           </div>
         </div>
       </footer>

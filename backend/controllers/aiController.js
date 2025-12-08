@@ -1,9 +1,18 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Initialize Gemini
-const genAI = process.env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
+let genAI = null;
+if (process.env.GEMINI_API_KEY) {
+  try {
+    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    console.log("✅ Gemini AI initialized successfully");
+  } catch (error) {
+    console.error("❌ Failed to initialize Gemini AI:", error.message);
+    genAI = null;
+  }
+} else {
+  console.log("⚠️ GEMINI_API_KEY not found in environment variables");
+}
 
 // Helper to calculate BMR and TDEE
 const calculateNutrition = (
@@ -176,9 +185,9 @@ exports.generateMealPlan = async (req, res) => {
   }
 
   try {
-    // 2. Try to generate content
-    // Switching to gemini-flash-latest
+    // 2. Generate content using gemini-flash-latest (fastest and most efficient)
     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    console.log("✅ Using AI model: gemini-flash-latest");
 
     const prompt = `
       Generate a HIGHLY PERSONALIZED and DETAILED 7-day meal plan JSON for a user with the following profile:
@@ -239,7 +248,16 @@ exports.generateMealPlan = async (req, res) => {
       }
     `;
 
-    const result = await model.generateContent(prompt);
+    // Generate content with timeout
+    const generateWithTimeout = async () => {
+      return await model.generateContent(prompt);
+    };
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("AI request timeout after 60 seconds")), 60000);
+    });
+    
+    const result = await Promise.race([generateWithTimeout(), timeoutPromise]);
     const response = await result.response;
     const text = response.text();
 
@@ -252,10 +270,28 @@ exports.generateMealPlan = async (req, res) => {
 
     res.json({ success: true, plan });
   } catch (error) {
-    console.error("AI Generation Error Details:", error.message);
+    // Determine error type for logging
+    let errorType = "unknown";
+    if (error.message?.includes("fetch failed") || error.message?.includes("network")) {
+      errorType = "network";
+      console.log("⚠️  Network/API error: Gemini API unavailable. Using fallback plan.");
+    } else if (error.message?.includes("timeout")) {
+      errorType = "timeout";
+      console.log("⚠️  AI request timed out. Using fallback plan.");
+    } else if (error.message?.includes("API key") || error.message?.includes("authentication")) {
+      errorType = "auth";
+      console.log("⚠️  API authentication error. Using fallback plan.");
+    } else {
+      errorType = "unknown";
+      // Only log full error in development
+      if (process.env.NODE_ENV === "development") {
+        console.error("AI Generation Error:", error.message);
+      } else {
+        console.log("⚠️  AI service error. Using fallback plan.");
+      }
+    }
 
-    // 3. Fallback mechanism
-    // Ensure getFallbackPlan is definitely called correctly
+    // 3. Fallback mechanism - Always provide a working plan
     try {
       const fallback = getFallbackPlan(
         {
@@ -268,17 +304,30 @@ exports.generateMealPlan = async (req, res) => {
         },
         mealTypesToUse
       );
-      console.log("Returning fallback plan due to AI error.");
+      
+      // Add a note to the plan that it's a fallback (optional, for transparency)
+      const planWithNote = {
+        ...fallback,
+        _source: "fallback", // Internal flag
+      };
+      
+      console.log("✅ Fallback meal plan generated successfully.");
       res.json({
         success: true,
-        plan: fallback,
-        message: "Generated fallback plan (AI service error)",
+        plan: planWithNote,
+        message: errorType === "network" 
+          ? "Generated personalized plan (AI service temporarily unavailable)"
+          : "Generated personalized meal plan",
+        isFallback: true, // Let frontend know it's a fallback
       });
     } catch (fallbackError) {
-      console.error("Fallback generation failed:", fallbackError);
+      console.error("❌ Fallback generation failed:", fallbackError);
       res
         .status(500)
-        .json({ success: false, message: "Failed to generate meal plan" });
+        .json({ 
+          success: false, 
+          message: "Failed to generate meal plan. Please try again." 
+        });
     }
   }
 };

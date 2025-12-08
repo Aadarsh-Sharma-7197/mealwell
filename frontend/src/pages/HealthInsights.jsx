@@ -14,6 +14,37 @@ export default function HealthInsights() {
 
   const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
 
+  // Icon mapping for backend data normalization
+  const iconMap = {
+    Scale,
+    Zap,
+    Activity,
+    Heart,
+    Target,
+    Calendar,
+    TrendingUp,
+    TrendingDown
+  };
+
+  // Normalize backend data to ensure icons are component references
+  const normalizeHealthData = (data) => {
+    if (!data) return data;
+    
+    const normalized = { ...data };
+    
+    // Normalize stats icons
+    if (normalized.stats && Array.isArray(normalized.stats)) {
+      normalized.stats = normalized.stats.map(stat => ({
+        ...stat,
+        icon: typeof stat.icon === 'string' 
+          ? iconMap[stat.icon] || Activity 
+          : stat.icon || Activity
+      }));
+    }
+    
+    return normalized;
+  };
+
   useEffect(() => {
     fetchHealthStats();
   }, [timeRange]);
@@ -27,7 +58,8 @@ export default function HealthInsights() {
       try {
         const response = await api.get('/health-stats');
         if (response.data.success) {
-          setData(response.data.data);
+          const normalizedData = normalizeHealthData(response.data.data);
+          setData(normalizedData);
           setLoading(false);
           return;
         }
@@ -220,7 +252,22 @@ export default function HealthInsights() {
     );
   }
 
-  const { stats, weeklyData, allData, achievements, healthScore, macroData, weeklySummary } = data;
+  const { 
+    stats = [], 
+    weeklyData = [], 
+    allData = [], 
+    achievements = [], 
+    healthScore = 0, 
+    macroData = [], 
+    weeklySummary = {
+      mealsConsumed: 0,
+      totalMeals: 0,
+      workouts: 0,
+      totalDays: 0,
+      waterIntake: 0,
+      sleepQuality: 'N/A'
+    }
+  } = data || {};
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -315,7 +362,11 @@ export default function HealthInsights() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 bg-${stat.color}-100 rounded-xl flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
+                  {stat.icon ? (
+                    <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
+                  ) : (
+                    <Activity className={`w-6 h-6 text-${stat.color}-600`} />
+                  )}
                 </div>
                 <div className={`flex items-center gap-1 text-sm font-bold ${
                   stat.trend === 'up' ? 'text-green-600' : 'text-red-600'

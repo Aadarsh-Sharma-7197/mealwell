@@ -40,25 +40,25 @@ export default function About() {
   const team = [
     {
       name: 'Aadarsh Sharma',
-      role: 'Developer',
-      image: '',
-      bio: ''
-    },
-    {
-      name: 'Aman Gupta',
-      role: 'Developer',
+      role: 'Fullstack Developer',
       image: '',
       bio: ''
     },
     {
       name: 'Abhilasha Sharma',
-      role: 'Developer',
+      role: 'Frontend Developer',
       image: '',
       bio: ''
     },
     {
-      name: 'Nikhil Gupta',
-      role: 'Developer',
+      name: 'Devyanshi Gupta',
+      role: 'UI/UX Designer',
+      image: '',
+      bio: ''
+    },
+    {
+      name: 'Kushagra Kant Rai',
+      role: 'Frontend Developer',
       image: '',
       bio: ''
     }

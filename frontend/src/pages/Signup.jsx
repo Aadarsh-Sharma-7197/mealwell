@@ -126,7 +126,7 @@ export default function Signup() {
                     value={formData.name}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="John Doe"
+                    placeholder="Enter your name"
                   />
                 </div>
               </div>
@@ -166,7 +166,7 @@ export default function Signup() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+91 (555) 000-0000"
                   />
                 </div>
               </div>

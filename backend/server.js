@@ -82,24 +82,52 @@ const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB and start server
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  })
   .then(() => {
     console.log("✅ Connected to MongoDB");
     console.log(`📦 Database: ${mongoose.connection.name}`);
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Backend server running on http://localhost:${PORT}`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-      console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+    const server = app.listen(PORT, () => {
+      console.log("\n" + "=".repeat(60));
+      console.log("🚀 MealWell Backend Server Started Successfully!");
+      console.log("=".repeat(60));
+      console.log(`📍 Server URL: http://localhost:${PORT}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+      console.log(`🤖 AI Model: gemini-flash-latest`);
+      console.log("=".repeat(60) + "\n");
     });
+
+    // Graceful shutdown
+    const gracefulShutdown = (signal) => {
+      console.log(`\n${signal} received. Shutting down gracefully...`);
+      server.close(() => {
+        console.log("✅ HTTP server closed");
+        mongoose.connection.close(false, () => {
+          console.log("✅ MongoDB connection closed");
+          process.exit(0);
+        });
+      });
+    };
+
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
+    console.error("💡 Make sure MongoDB is running and MONGO_URI is set correctly");
     process.exit(1);
   });
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err) => {
   console.error("❌ Unhandled Rejection:", err.message);
-  process.exit(1);
+  // Don't exit in production, just log
+  if (process.env.NODE_ENV === "production") {
+    console.error("Error details:", err);
+  } else {
+    process.exit(1);
+  }
 });
