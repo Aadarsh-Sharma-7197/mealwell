@@ -280,6 +280,7 @@ exports.generateMealPlan = async (req, res) => {
       console.log("⚠️  AI request timed out. Using fallback plan.");
     } else if (error.message?.includes("API key") || error.message?.includes("authentication")) {
       errorType = "auth";
+      console.log("FULL ERROR:", error);
       console.log("⚠️  API authentication error. Using fallback plan.");
     } else {
       errorType = "unknown";

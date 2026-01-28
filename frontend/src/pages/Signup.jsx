@@ -69,47 +69,8 @@ export default function Signup() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* User Type Selection */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, userType: "customer" })
-                  }
-                  className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${
-                    formData.userType === "customer"
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500 ring-opacity-50"
-                      : "border-gray-200 hover:border-emerald-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <ShoppingBag
-                    className={`h-6 w-6 ${
-                      formData.userType === "customer"
-                        ? "text-emerald-600"
-                        : "text-gray-400"
-                    }`}
-                  />
-                  <span className="font-medium">I want to order</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, userType: "chef" })}
-                  className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${
-                    formData.userType === "chef"
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500 ring-opacity-50"
-                      : "border-gray-200 hover:border-emerald-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <Utensils
-                    className={`h-6 w-6 ${
-                      formData.userType === "chef"
-                        ? "text-emerald-600"
-                        : "text-gray-400"
-                    }`}
-                  />
-                  <span className="font-medium">I want to cook</span>
-                </button>
-              </div>
+              {/* User Type Selection Removed - Defaulting to Customer */}
+              <input type="hidden" name="userType" value="customer" />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
