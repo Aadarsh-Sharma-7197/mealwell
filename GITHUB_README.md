@@ -123,8 +123,10 @@ This project is configured for **Separate Deployment** on Vercel. You will creat
 ### 2. Deploy Frontend
 1.  Go to Vercel and **Add New Project** (import the same repo again).
 2.  **Important**: Set **Root Directory** to `frontend`.
-3.  Deploy!
-4.  **Copy the assigned Frontend URL** (e.g., `https://mealwell-frontend.vercel.app`).
+3.  **Environment Variables**:
+    *   `VITE_API_URL`: Set this to your **Backend URL** + `/api` (e.g., `https://mealwell-backend.vercel.app/api`).
+4.  Deploy!
+5.  **Copy the assigned Frontend URL** (e.g., `https://mealwell-frontend.vercel.app`).
 
 ### 3. Link Them (CORS)
 1.  Go to your **Backend Project** in Vercel > Settings > Environment Variables.
