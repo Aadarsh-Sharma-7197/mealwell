@@ -108,10 +108,28 @@ mealwell/
 └── vercel.json         # Vercel Deployment Configuration
 ```
 
-## 🌍 Deployment
+## 🌍 Deployment (Separate Frontend & Backend)
 
-This project is configured for deployment on **Vercel**.
-The `vercel.json` file handles the routing for both the Node.js backend and React frontend in a single monorepo deployment.
+This project is configured for **Separate Deployment** on Vercel. You will create two separate Vercel projects.
+
+### 1. Deploy Backend
+1.  Go to Vercel Dashboard > **Add New Project**.
+2.  Import this repository.
+3.  **Important**: Set **Root Directory** to `backend`.
+4.  Add environment variables (MONGO_URI, etc.).
+5.  Deploy!
+6.  **Copy the assigned Backend URL** (e.g., `https://mealwell-backend.vercel.app`).
+
+### 2. Deploy Frontend
+1.  Go to Vercel and **Add New Project** (import the same repo again).
+2.  **Important**: Set **Root Directory** to `frontend`.
+3.  Deploy!
+4.  **Copy the assigned Frontend URL** (e.g., `https://mealwell-frontend.vercel.app`).
+
+### 3. Link Them (CORS)
+1.  Go to your **Backend Project** in Vercel > Settings > Environment Variables.
+2.  Add `FRONTEND_URL` with value: `https://your-frontend-url.vercel.app` (no trailing slash).
+3.  **Redeploy** the Backend for changes to take effect.
 
 ## 🤝 Contributing
 
