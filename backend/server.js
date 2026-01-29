@@ -89,37 +89,41 @@ mongoose
     console.log("✅ Connected to MongoDB");
     console.log(`📦 Database: ${mongoose.connection.name}`);
 
-    const server = app.listen(PORT, () => {
-      console.log("\n" + "=".repeat(60));
-      console.log("🚀 MealWell Backend Server Started Successfully!");
-      console.log("=".repeat(60));
-      console.log(`📍 Server URL: http://localhost:${PORT}`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-      console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
-      console.log(`🤖 AI Model: gemini-flash-latest`);
-      console.log("=".repeat(60) + "\n");
-    });
-
-    // Graceful shutdown
-    const gracefulShutdown = (signal) => {
-      console.log(`\n${signal} received. Shutting down gracefully...`);
-      server.close(() => {
-        console.log("✅ HTTP server closed");
-        mongoose.connection.close(false, () => {
-          console.log("✅ MongoDB connection closed");
-          process.exit(0);
-        });
+    if (require.main === module) {
+      const server = app.listen(PORT, () => {
+        console.log("\n" + "=".repeat(60));
+        console.log("🚀 MealWell Backend Server Started Successfully!");
+        console.log("=".repeat(60));
+        console.log(`📍 Server URL: http://localhost:${PORT}`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+        console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+        console.log(`🤖 AI Model: gemini-flash-latest`);
+        console.log("=".repeat(60) + "\n");
       });
-    };
 
-    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+      // Graceful shutdown
+      const gracefulShutdown = (signal) => {
+        console.log(`\n${signal} received. Shutting down gracefully...`);
+        server.close(() => {
+          console.log("✅ HTTP server closed");
+          mongoose.connection.close(false, () => {
+            console.log("✅ MongoDB connection closed");
+            process.exit(0);
+          });
+        });
+      };
+
+      process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+      process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+    }
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
     console.error("💡 Make sure MongoDB is running and MONGO_URI is set correctly");
-    process.exit(1);
+    if (require.main === module) process.exit(1);
   });
+
+module.exports = app;
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err) => {
