@@ -185,9 +185,9 @@ exports.generateMealPlan = async (req, res) => {
   }
 
   try {
-    // 2. Generate content using gemini-flash-latest (fastest and most efficient)
+    // 2. Generate content using gemini-1.5-flash (fastest and most efficient)
     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-    console.log("✅ Using AI model: gemini-flash-latest");
+    console.log("✅ Using AI model: gemini-1.5-flash");
 
     const prompt = `
       Generate a HIGHLY PERSONALIZED and DETAILED 7-day meal plan JSON for a user with the following profile:
@@ -250,13 +250,15 @@ exports.generateMealPlan = async (req, res) => {
 
     // Generate content with timeout
     const generateWithTimeout = async () => {
-      return await model.generateContent(prompt);
+      const result = await model.generateContent(prompt);
+      return result;
     };
     
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("AI request timeout after 60 seconds")), 60000);
+      setTimeout(() => reject(new Error("AI request timeout after 120 seconds")), 120000);
     });
     
+    console.log("⏳ Sending request to Gemini AI... (Timeout: 120s)");
     const result = await Promise.race([generateWithTimeout(), timeoutPromise]);
     const response = await result.response;
     const text = response.text();
