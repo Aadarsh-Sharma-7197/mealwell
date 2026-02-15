@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const connectDB = require('./config/db'); // Import DB connection logic
 
 // Load environment variables
 dotenv.config();
@@ -23,6 +24,24 @@ app.use(
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Serverless DB Connection Middleware
+// Ensures database is connected before processing any request
+app.use(async (req, res, next) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+       await connectDB();
+    }
+    next();
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    res.status(500).json({ 
+        success: false, 
+        message: "Database connection failed",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined
+    });
+  }
+});
 
 // Static folder
 app.use("/uploads", express.static("uploads"));
@@ -86,7 +105,7 @@ const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB and start server
 // Connect to MongoDB and start server
-const connectDB = require('./config/db');
+// connectDB imported at top
 
 // Call connectDB immediately to start connection process
 connectDB().catch(err => console.error(err));

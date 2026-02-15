@@ -15,8 +15,9 @@ const connectDB = async () => {
 
   if (!cached.promise) {
     const opts = {
-      bufferCommands: false, // Return error immediately if not connected
+      bufferCommands: true, // Enable buffering for serverless cold starts
       serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10, // Maintain up to 10 socket connections
     };
 
     console.log('Creating new MongoDB connection...');
