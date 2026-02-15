@@ -17,6 +17,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import api from "../api/axios";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -53,6 +54,23 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    if (activeTab === "billing") {
+      const fetchOrders = async () => {
+        try {
+          const res = await api.get("/orders");
+          if (res.data.success) {
+            setOrders(res.data.data);
+          }
+        } catch (err) {
+          console.error("Error fetching orders:", err);
+        }
+      };
+      fetchOrders();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (user) {
@@ -547,11 +565,37 @@ export default function Settings() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
                   Billing History
                 </h2>
-                <p className="text-gray-500">Your recent orders and transactions will appear here.</p>
-                {/* Placeholder for billing history - could be connected to orders API */}
-                 <div className="mt-4 p-4 bg-gray-50 rounded-lg text-center text-gray-400">
-                    No recent transactions found.
-                 </div>
+                <div className="space-y-4">
+                  {orders.length > 0 ? (
+                    orders.map((order) => (
+                      <div
+                        key={order._id}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100"
+                      >
+                        <div>
+                          <div className="font-bold text-gray-900">
+                            {order.items[0]?.name || "Meal Plan"}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-emerald-600">
+                            ₹{order.totalAmount}
+                          </div>
+                          <div className="text-xs uppercase font-semibold text-gray-500">
+                            {order.paymentStatus}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-400">
+                      No recent transactions found.
+                    </div>
+                  )}
+                </div>
               </motion.div>
             )}
 
