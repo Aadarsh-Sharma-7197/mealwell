@@ -47,7 +47,7 @@ export default function MainLayout({ children }) {
               <h4 className="font-bold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>📧 mealwell@gmail.com</li>
-                <li>📱 +91 7895454011</li>
+                <li>📱 +91 9876543210</li>
                 <li>📍 India</li>
               </ul>
               <div className="flex gap-3 mt-4">
