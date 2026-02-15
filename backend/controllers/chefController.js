@@ -30,7 +30,9 @@ exports.getAllChefs = async (req, res) => {
     console.error("Get chefs error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: error.message,
+      stack: process.env.NODE_ENV === 'production' ? '🥞' : error.stack,
+      debug: "Debug mode enabled for Vercel troubleshooting"
     });
   }
 };

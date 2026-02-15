@@ -72,6 +72,7 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     message: err.message || "Something went wrong!",
     error: process.env.NODE_ENV === "development" ? err : {},
+    debug_stack: process.env.NODE_ENV === 'production' ? err.stack : undefined // Templorary for Vercel debugging
   });
 });
 
