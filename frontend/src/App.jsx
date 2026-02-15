@@ -14,6 +14,7 @@ import CustomerDashboard from "./pages/CustomerDashboard";
 import ChefDashboard from "./pages/ChefDashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+
 import MealPlan from "./pages/MealPlan";
 import BrowseChefs from "./pages/BrowseChefs";
 import OrderTracking from "./pages/OrderTracking";
@@ -57,6 +58,8 @@ function AppContent() {
                 <Route path="/browse-chefs" element={<BrowseChefs />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+
+                {/* Protected Customer Routes */}
 
                 {/* Protected Customer Routes */}
                 <Route

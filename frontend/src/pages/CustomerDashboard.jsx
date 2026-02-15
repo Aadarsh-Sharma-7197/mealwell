@@ -35,6 +35,12 @@ export default function CustomerDashboard() {
     if (savedPlan) {
       try {
         const planData = JSON.parse(savedPlan);
+        // Check if plan belongs to current user
+        if (planData.userId && user && planData.userId !== user._id) {
+          setAiMealPlan(null);
+          return;
+        }
+
         // Handle both old format (just plan) and new format (plan + selectedMealTypes)
         if (planData.plan) {
           setAiMealPlan(planData);
@@ -50,7 +56,7 @@ export default function CustomerDashboard() {
         console.error('Error parsing saved meal plan:', e);
       }
     }
-  }, []);
+  }, [user]);
 
   const fetchUpcomingMeals = async () => {
     try {
@@ -124,7 +130,11 @@ export default function CustomerDashboard() {
       if (savedPlan) {
         try {
           const planData = JSON.parse(savedPlan);
-          if (planData.plan) {
+          
+          // Check if plan belongs to current user
+          if (planData.userId && user && planData.userId !== user._id) {
+            aiPlanData = null;
+          } else if (planData.plan) {
             aiPlanData = planData.plan;
             selectedMealTypes = planData.selectedMealTypes || selectedMealTypes;
             planStats = {

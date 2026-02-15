@@ -4,7 +4,7 @@ import { Calendar, Download, RefreshCw, ChefHat, Heart, Flame, Clock, Loader2 } 
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export default function MealPlan() {
   const [selectedDay, setSelectedDay] = useState(0);
@@ -295,32 +295,43 @@ export default function MealPlan() {
   };
 
   const downloadPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text('MealWell - Your Meal Plan', 14, 20);
-    
-    const tableData = [];
-    weeklyMeals.forEach((day, index) => {
-      const meals = Object.values(day.mealsByType).filter(Boolean);
-      meals.forEach(meal => {
-        tableData.push([
-          day.day,
-          meal.type || meal.mealType || 'Meal',
-          meal.name || 'Meal',
-          `${meal.nutritionalInfo?.calories || 0} kcal`,
-          `${meal.nutritionalInfo?.protein || 0}g`,
-          meal.chefName || 'Chef'
-        ]);
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(20);
+      doc.text('MealWell - Your Meal Plan', 14, 20);
+      
+      const tableData = [];
+      weeklyMeals.forEach((day, index) => {
+        const meals = Object.values(day.mealsByType).filter(Boolean);
+        meals.forEach(meal => {
+          tableData.push([
+            day.day,
+            meal.type || meal.mealType || 'Meal',
+            meal.name || 'Meal',
+            `${meal.nutritionalInfo?.calories || 0} kcal`,
+            `${meal.nutritionalInfo?.protein || 0}g`,
+            meal.chefName || 'Chef'
+          ]);
+        });
       });
-    });
 
-    doc.autoTable({
-      head: [['Day', 'Type', 'Meal', 'Calories', 'Protein', 'Chef']],
-      body: tableData,
-      startY: 30,
-    });
+      autoTable(doc, {
+        head: [['Day', 'Type', 'Meal', 'Calories', 'Protein', 'Chef']],
+        body: tableData,
+        startY: 30,
+        theme: 'grid',
+        headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+        styles: { fontSize: 9, overflow: 'linebreak' },
+        columnStyles: {
+            2: { cellWidth: 60 }
+        }
+      });
 
-    doc.save('meal-plan.pdf');
+      doc.save('meal-plan.pdf');
+    } catch (error) {
+       console.error("PDF Download Error:", error);
+       alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   const currentPlan = weeklyMeals[selectedDay] || weeklyMeals[0];
@@ -456,7 +467,7 @@ export default function MealPlan() {
 
         {/* Day Selector */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
-          <div className="flex items-center gap-4 overflow-x-auto pb-2">
+          <div className="flex items-center gap-4 overflow-x-auto pb-2 no-scrollbar">
             {getWeekDays().map((dayObj, index) => (
               <button
                 key={dayObj.dateString}

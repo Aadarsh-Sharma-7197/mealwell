@@ -88,6 +88,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('aiMealPlan');
     setUser(null);
     setIsAuthenticated(false);
     navigate('/');
@@ -99,7 +100,8 @@ export function AuthProvider({ children }) {
     loading,
     login,
     signup,
-    logout
+    logout,
+    updateUser: setUser
   };
 
   return (

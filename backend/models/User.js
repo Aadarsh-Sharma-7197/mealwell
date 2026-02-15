@@ -46,7 +46,18 @@ const userSchema = new mongoose.Schema(
           "https://ui-avatars.com/api/?background=10b981&color=fff&name=",
       },
       location: String,
+      address: String,
       bio: String,
+    },
+    preferences: {
+      dietary: [String],
+      goals: String,
+      notifications: {
+        orderUpdates: { type: Boolean, default: true },
+        healthInsights: { type: Boolean, default: true },
+        newChefs: { type: Boolean, default: true },
+        promotions: { type: Boolean, default: false },
+      },
     },
   },
   {

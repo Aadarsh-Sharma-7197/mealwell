@@ -26,8 +26,7 @@ import {
   Download,
 } from "lucide-react";
 import jsPDF from "jspdf";
-// @ts-ignore
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 export default function CreateDietPlan() {
   const navigate = useNavigate();
@@ -342,7 +341,8 @@ export default function CreateDietPlan() {
         const planData = {
           plan: plan,
           selectedMealTypes: formData.selectedMealTypes || ["breakfast", "lunch", "dinner"],
-          mealsPerDay: formData.mealsPerDay || 3
+          mealsPerDay: formData.mealsPerDay || 3,
+          userId: user?._id
         };
         localStorage.setItem('aiMealPlan', JSON.stringify(planData));
         setStep(5);
@@ -1244,16 +1244,17 @@ export default function CreateDietPlan() {
         ],
       ];
 
-      doc.autoTable({
-        startY: startY + 5,
-        head: [["Metric", "Value", "Note"]],
+      autoTable(doc, {
+        startY: 40,
+        head: [["Metric", "Value", "Description"]],
         body: metricsData,
         theme: "grid",
         headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+        styles: { fontSize: 10 },
       });
 
-      // Nutrition Goals
-      let finalY = doc.lastAutoTable.finalY + 15;
+      let finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) || 80;
+      finalY += 15;
       doc.text("Daily Nutrition Goals", 14, finalY);
 
       const nutritionData = [
@@ -1263,16 +1264,18 @@ export default function CreateDietPlan() {
         ["Fats", `${generatedPlan.fats}g`],
       ];
 
-      doc.autoTable({
+      autoTable(doc, {
         startY: finalY + 5,
-        head: [["Nutrient", "Target"]],
+        head: [["Macro", "Target"]],
         body: nutritionData,
-        theme: "grid",
-        headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+        theme: "striped",
+        headStyles: { fillColor: [59, 130, 246], textColor: 255 }, // Blue header
+        styles: { fontSize: 10 },
+        tableWidth: 100,
       });
 
-      // Meal Plan
-      finalY = doc.lastAutoTable.finalY + 15;
+      finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) || (finalY + 5);
+      finalY += 15;
       doc.text("Weekly Meal Plan", 14, finalY);
 
       const scheduleData = [];
@@ -1326,21 +1329,22 @@ export default function CreateDietPlan() {
       }
 
       if (scheduleData.length > 0) {
-        doc.autoTable({
-          startY: finalY + 5,
-          head: [["Day", "Meal", "Dish", "Nutrition"]],
-          body: scheduleData,
-          theme: "grid",
-          headStyles: { fillColor: [16, 185, 129], textColor: 255 },
-          columnStyles: {
-            0: { cellWidth: 25 },
-            1: { cellWidth: 25 },
-            2: { cellWidth: 80 },
-            3: { cellWidth: 50 },
-          },
-          styles: { fontSize: 8 },
-        });
-        finalY = doc.lastAutoTable.finalY + 15;
+        autoTable(doc, {
+        startY: finalY + 5,
+        head: [["Day", "Type", "Meal", "Nutrition"]],
+        body: scheduleData,
+        theme: "grid",
+        headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 80 },
+          3: { cellWidth: 50 },
+        },
+        styles: { fontSize: 8 },
+      });
+      finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) || (finalY + 5);
+      finalY += 15;
       } else {
         doc.text("No meal plan data available", 14, finalY + 10);
         finalY = finalY + 25;
@@ -1359,7 +1363,7 @@ export default function CreateDietPlan() {
         : [];
 
       if (tipsData.length > 0) {
-        doc.autoTable({
+        autoTable(doc, {
           startY: finalY + 5,
           body: tipsData,
           theme: "plain",

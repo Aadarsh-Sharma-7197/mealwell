@@ -188,7 +188,7 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phone, bio, location } = req.body;
+    const { name, phone, bio, location, address } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -199,13 +199,24 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
+
     // Update fields
     if (name) user.name = name;
     if (phone) user.phone = phone;
     if (bio) user.profile.bio = bio;
     if (location) user.profile.location = location;
-    // Update avatar if provided
-    if (req.body.avatar) user.profile.avatar = req.body.avatar;
+    if (address) user.profile.address = address;
+
+    // Handle File Upload
+    if (req.file) {
+      user.profile.avatar = `${process.env.BASE_URL || "http://localhost:5000"}/uploads/${req.file.filename}`;
+    }
+
+    // Handle Preferences
+    if (req.body.preferences) {
+      const prefs = JSON.parse(req.body.preferences);
+      user.preferences = { ...user.preferences, ...prefs };
+    }
 
     await user.save();
 
@@ -222,3 +233,38 @@ exports.updateProfile = async (req, res) => {
     });
   }
 };
+
+// @desc    Update password
+// @route   PUT /api/auth/updatepassword
+// @access  Private
+exports.updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user.id).select("+password");
+
+    // Check current password
+    if (!(await user.matchPassword(currentPassword))) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect current password",
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("Update password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during password update",
+    });
+  }
+};
+
+

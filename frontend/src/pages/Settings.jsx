@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   User,
-  Mail,
-  Phone,
-  MapPin,
-  Lock,
   Bell,
-  CreditCard,
   Shield,
+  CreditCard,
   HelpCircle,
   LogOut,
   Check,
   AlertCircle,
+  Mail,
+  Phone,
+  MapPin,
+  Lock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -20,7 +20,8 @@ import axios from "axios";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("profile");
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
+  const fileInputRef = React.useRef(null);
 
   // Profile state
   const [profileData, setProfileData] = useState({
@@ -30,6 +31,26 @@ export default function Settings() {
     location: "",
     address: "",
   });
+
+  // Preferences state
+  const [preferences, setPreferences] = useState({
+      notifications: {
+          email: true,
+          push: true,
+          sms: false,
+          promo: true
+      },
+      dietary: [],
+      units: "metric"
+  });
+
+  // Security state
+  const [securityData, setSecurityData] = useState({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+  });
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
@@ -40,8 +61,11 @@ export default function Settings() {
         email: user.email || "",
         phone: user.phone || "",
         location: user.profile?.location || "",
-        address: user.profile?.address || "123, Green Park, New Delhi - 110016", // Fallback for now
+        address: user.profile?.address || "",
       });
+      if (user.preferences) {
+          setPreferences(user.preferences);
+      }
     }
   }, [user]);
 
@@ -50,24 +74,27 @@ export default function Settings() {
     setMessage({ type: "", text: "" });
 
     try {
+      const formData = new FormData();
+      formData.append("name", profileData.name);
+      formData.append("phone", profileData.phone);
+      formData.append("location", profileData.location);
+      formData.append("address", profileData.address);
+      formData.append("preferences", JSON.stringify(preferences));
+
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/auth/profile`,
-        {
-          name: profileData.name,
-          phone: profileData.phone,
-          location: profileData.location,
-          // Address might need a separate field in backend or be part of profile
-        },
+        formData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
       if (response.data.success) {
         setMessage({ type: "success", text: "Profile updated successfully!" });
-        // Optionally update local user context if needed, but for now we just show success
+        updateUser(response.data.user);
       }
     } catch (error) {
       console.error("Update profile error:", error);
@@ -78,6 +105,69 @@ export default function Settings() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePhotoUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      setLoading(true);
+      try {
+          const response = await axios.put(
+              `${import.meta.env.VITE_API_URL}/auth/profile`,
+              formData,
+              {
+                  headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                      "Content-Type": "multipart/form-data",
+                  },
+              }
+          );
+           if (response.data.success) {
+              setMessage({ type: "success", text: "Photo updated successfully!" });
+              updateUser(response.data.user);
+          }
+      } catch (error) {
+           console.error("Photo upload error:", error);
+           setMessage({ type: "error", text: "Failed to upload photo" });
+      } finally {
+          setLoading(false);
+      }
+  };
+
+  const handlePasswordUpdate = async () => {
+      if (securityData.newPassword !== securityData.confirmPassword) {
+          setMessage({ type: "error", text: "New passwords do not match" });
+          return;
+      }
+      setLoading(true);
+      setMessage({ type: "", text: "" });
+
+      try {
+          const response = await axios.put(
+              `${import.meta.env.VITE_API_URL}/auth/updatepassword`,
+              {
+                  currentPassword: securityData.currentPassword,
+                  newPassword: securityData.newPassword,
+              },
+              {
+                  headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+              }
+          );
+          if (response.data.success) {
+              setMessage({ type: "success", text: "Password updated successfully!" });
+              setSecurityData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+          }
+      } catch (error) {
+           setMessage({ type: "error", text: error.response?.data?.message || "Failed to update password" });
+      } finally {
+          setLoading(false);
+      }
   };
 
   const tabs = [
@@ -176,7 +266,17 @@ export default function Settings() {
                       )}
                     </div>
                     <div>
-                      <button className="px-6 py-2 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all mb-2">
+                      <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          onChange={handlePhotoUpload} 
+                          className="hidden" 
+                          accept="image/*"
+                      />
+                      <button 
+                          onClick={() => fileInputRef.current.click()}
+                          className="px-6 py-2 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all mb-2"
+                      >
                         Change Photo
                       </button>
                       <p className="text-sm text-gray-500">
@@ -275,6 +375,7 @@ export default function Settings() {
                         })
                       }
                       rows="3"
+                      placeholder="Enter your full address"
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
                     />
                   </div>
@@ -287,9 +388,7 @@ export default function Settings() {
                           email: user.email || "",
                           phone: user.phone || "",
                           location: user.profile?.location || "",
-                          address:
-                            user.profile?.address ||
-                            "123, Green Park, New Delhi - 110016",
+                          address: user.profile?.address || "",
                         })
                       }
                       className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all"
@@ -303,89 +402,6 @@ export default function Settings() {
                     >
                       {loading ? "Saving..." : "Save Changes"}
                     </button>
-                  </div>
-                </div>
-
-                {/* Health Profile */}
-                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Health Profile
-                  </h2>
-
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Current Weight
-                      </label>
-                      <input
-                        type="number"
-                        defaultValue="77"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
-                      />
-                      <span className="text-xs text-gray-500">kg</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Target Weight
-                      </label>
-                      <input
-                        type="number"
-                        defaultValue="75"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
-                      />
-                      <span className="text-xs text-gray-500">kg</span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Height
-                      </label>
-                      <input
-                        type="number"
-                        defaultValue="175"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
-                      />
-                      <span className="text-xs text-gray-500">cm</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Dietary Preferences
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        "Vegetarian",
-                        "Vegan",
-                        "Gluten-Free",
-                        "Dairy-Free",
-                        "Keto",
-                        "Low-Carb",
-                      ].map((pref) => (
-                        <label
-                          key={pref}
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-xl cursor-pointer hover:bg-emerald-50 transition-all"
-                        >
-                          <input type="checkbox" className="w-4 h-4" />
-                          <span className="text-sm font-semibold text-gray-700">
-                            {pref}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Health Goals
-                    </label>
-                    <select className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all">
-                      <option>Weight Loss</option>
-                      <option>Muscle Gain</option>
-                      <option>Maintenance</option>
-                      <option>General Health</option>
-                    </select>
                   </div>
                 </div>
               </motion.div>
@@ -402,48 +418,41 @@ export default function Settings() {
                 </h2>
 
                 <div className="space-y-6">
-                  {[
-                    {
-                      label: "Order Updates",
-                      desc: "Get notified about your meal deliveries",
-                    },
-                    {
-                      label: "Health Insights",
-                      desc: "Weekly progress reports and tips",
-                    },
-                    {
-                      label: "New Chefs",
-                      desc: "Alert when new chefs join your area",
-                    },
-                    {
-                      label: "Promotions",
-                      desc: "Special offers and discounts",
-                    },
-                    {
-                      label: "Reminders",
-                      desc: "Meal time and hydration reminders",
-                    },
-                  ].map((item, i) => (
+                  {Object.entries(preferences.notifications || {}).map(([key, value]) => (
                     <div
-                      key={i}
+                      key={key}
                       className="flex items-center justify-between py-4 border-b border-gray-100 last:border-0"
                     >
                       <div>
-                        <div className="font-bold text-gray-900 mb-1">
-                          {item.label}
+                        <div className="font-bold text-gray-900 mb-1 capitalize">
+                          {key.replace(/([A-Z])/g, " $1").trim()}
                         </div>
-                        <div className="text-sm text-gray-500">{item.desc}</div>
+                        <div className="text-sm text-gray-500">Enable notification for {key}</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          defaultChecked={i < 3}
+                          checked={value}
+                          onChange={(e) => setPreferences({
+                              ...preferences,
+                              notifications: {
+                                  ...preferences.notifications,
+                                  [key]: e.target.checked
+                              }
+                          })}
                           className="sr-only peer"
                         />
                         <div className="w-14 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-600"></div>
                       </label>
                     </div>
                   ))}
+                  <button
+                      onClick={handleProfileUpdate}
+                      disabled={loading}
+                      className="mt-4 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl font-bold hover:shadow-lg transition-all"
+                  >
+                      Save Preferences
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -458,6 +467,18 @@ export default function Settings() {
                   Security Settings
                 </h2>
 
+                 {message.text && (
+                      <div
+                        className={`mb-4 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
+                          message.type === "success"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {message.text}
+                      </div>
+                    )}
+
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -468,6 +489,8 @@ export default function Settings() {
                       <input
                         type="password"
                         placeholder="Enter current password"
+                        value={securityData.currentPassword}
+                        onChange={(e) => setSecurityData({...securityData, currentPassword: e.target.value})}
                         className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
                       />
                     </div>
@@ -482,6 +505,8 @@ export default function Settings() {
                       <input
                         type="password"
                         placeholder="Enter new password"
+                        value={securityData.newPassword}
+                        onChange={(e) => setSecurityData({...securityData, newPassword: e.target.value})}
                         className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
                       />
                     </div>
@@ -496,33 +521,64 @@ export default function Settings() {
                       <input
                         type="password"
                         placeholder="Confirm new password"
+                        value={securityData.confirmPassword}
+                        onChange={(e) => setSecurityData({...securityData, confirmPassword: e.target.value})}
                         className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none transition-all"
                       />
                     </div>
                   </div>
 
-                  <button className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl font-bold hover:shadow-lg transition-all">
+                  <button 
+                      onClick={handlePasswordUpdate}
+                      className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl font-bold hover:shadow-lg transition-all"
+                  >
                     Update Password
                   </button>
                 </div>
+              </motion.div>
+            )}
 
-                <div className="mt-8 pt-8 border-t border-gray-200">
-                  <h3 className="font-bold text-gray-900 mb-4">
-                    Two-Factor Authentication
-                  </h3>
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                    <div>
-                      <div className="font-semibold text-gray-900">
-                        Enable 2FA
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Add an extra layer of security
-                      </div>
-                    </div>
-                    <button className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-all">
-                      Enable
-                    </button>
-                  </div>
+            {activeTab === "billing" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100"
+              >
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Billing History
+                </h2>
+                <p className="text-gray-500">Your recent orders and transactions will appear here.</p>
+                {/* Placeholder for billing history - could be connected to orders API */}
+                 <div className="mt-4 p-4 bg-gray-50 rounded-lg text-center text-gray-400">
+                    No recent transactions found.
+                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === "help" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100"
+              >
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Help & Support
+                </h2>
+
+                <div className="space-y-6">
+                   <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-100">
+                      <h3 className="flex items-center gap-2 font-bold text-emerald-800 mb-2">
+                         <HelpCircle className="w-5 h-5" />
+                         Need urgent help?
+                      </h3>
+                      <p className="text-emerald-700 text-sm mb-4">
+                         Our support team is available 24/7 to assist you.
+                      </p>
+                      <button className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-all">
+                         Chat with Support
+                      </button>
+                   </div>
+                    {/* Add more help sections as needed */}
                 </div>
               </motion.div>
             )}

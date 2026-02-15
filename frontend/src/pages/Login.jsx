@@ -114,7 +114,9 @@ export default function Login() {
                 <div className="text-sm">
                   <a
                     href="#"
-                    className="font-medium text-emerald-600 hover:text-emerald-500"
+                    className="font-medium text-emerald-600 hover:text-emerald-500 cursor-not-allowed opacity-60"
+                    title="Feature coming soon"
+                    onClick={(e) => e.preventDefault()}
                   >
                     Forgot your password?
                   </a>
