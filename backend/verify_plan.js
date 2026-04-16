@@ -1,8 +1,9 @@
+const dotenv = require("dotenv");
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const DietPlan = require('./models/DietPlan');
-
-const MONGO_URI = 'mongodb+srv://aadarshsharma7197_db_user:rOf3vSwHHwdJCM1Z@mealwell-cluster.0tz6gn1.mongodb.net/mealwell?retryWrites=true&w=majority&appName=mealwell-cluster';
+dotenv.config()
+const MONGO_URI = process.env.MONGO_URI;
 
 const verifyPlans = async () => {
   try {
