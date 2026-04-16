@@ -296,7 +296,27 @@ export default function CreateDietPlan() {
       })),
     };
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      // Save to localStorage
+      const planData = {
+        plan: weeklyPlan,
+        selectedMealTypes: formData.selectedMealTypes || ["breakfast", "lunch", "dinner"],
+        mealsPerDay: formData.mealsPerDay || 3,
+        userId: user?._id
+      };
+      localStorage.setItem('aiMealPlan', JSON.stringify(planData));
+
+      // Save to backend if user is logged in
+      if (user) {
+        try {
+          await api.post("/ai/save-plan", { plan: weeklyPlan });
+          console.log("✅ Manual plan saved to database");
+        } catch (error) {
+          console.error("❌ Error saving manual plan to DB:", error);
+          alert("Plan created locally but failed to save to account. Please try again.");
+        }
+      }
+
       setGeneratedPlan(weeklyPlan);
       setStep(5);
       setLoading(false);
@@ -1422,6 +1442,17 @@ export default function CreateDietPlan() {
           <p className="text-lg text-gray-600">
             Personalized just for you based on your health profile
           </p>
+          {user && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full font-medium text-sm"
+            >
+              <Check className="w-4 h-4" />
+              Saved to your account
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Nutrition Summary Cards */}

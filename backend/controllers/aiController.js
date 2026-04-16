@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const DietPlan = require('../models/DietPlan');
 
 // Initialize Gemini
 let genAI = null;
@@ -167,27 +168,35 @@ exports.generateMealPlan = async (req, res) => {
   // 1. Check if AI is available
   if (!genAI) {
     console.log("Gemini API key missing. Returning fallback plan.");
+    const fallbackPlan = getFallbackPlan(
+      { age, gender, height, weight, activityLevel, goal },
+      mealTypesToUse
+    );
+    
+    // Save fallback plan to DB if user is authenticated
+    if (req.user) {
+      try {
+        await DietPlan.findOneAndUpdate(
+          { userId: req.user._id },
+          { planData: fallbackPlan },
+          { upsert: true, new: true }
+        );
+      } catch (err) {
+        console.error("Error saving fallback plan to DB:", err);
+      }
+    }
+
     return res.json({
       success: true,
-      plan: getFallbackPlan(
-        {
-          age,
-          gender,
-          height,
-          weight,
-          activityLevel,
-          goal,
-        },
-        mealTypesToUse
-      ),
+      plan: fallbackPlan,
       message: "Generated fallback plan (AI service unavailable)",
     });
   }
 
   try {
-    // 2. Generate content using gemini-1.5-flash (fastest and most efficient)
+    // 2. Generate content using gemini-flash-latest (fastest and most efficient)
     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-    console.log("✅ Using AI model: gemini-1.5-flash");
+    console.log("✅ Using AI model: gemini-flash-latest");
 
     const prompt = `
       Generate a HIGHLY PERSONALIZED and DETAILED 7-day meal plan JSON for a user with the following profile:
@@ -270,6 +279,24 @@ exports.generateMealPlan = async (req, res) => {
       .trim();
     const plan = JSON.parse(cleanedText);
 
+    // Save plan to DB if user is authenticated
+    if (req.user) {
+      console.log("👤 User authenticated for plan save:", req.user._id);
+      try {
+        const savedPlan = await DietPlan.findOneAndUpdate(
+          { userId: req.user._id },
+          { planData: plan },
+          { upsert: true, new: true }
+        );
+        console.log("✅ Plan saved successfully to DB. ID:", savedPlan._id);
+      } catch (err) {
+        console.error("❌ Error saving AI plan to DB:", err);
+        console.error("Stack:", err.stack);
+      }
+    } else {
+      console.log("⚠️ No user in request, skipping DB save.");
+    }
+
     res.json({ success: true, plan });
   } catch (error) {
     // Determine error type for logging
@@ -308,11 +335,23 @@ exports.generateMealPlan = async (req, res) => {
         mealTypesToUse
       );
       
-      // Add a note to the plan that it's a fallback (optional, for transparency)
       const planWithNote = {
         ...fallback,
         _source: "fallback", // Internal flag
       };
+
+      // Save fallback to DB
+      if (req.user) {
+        try {
+          await DietPlan.findOneAndUpdate(
+            { userId: req.user._id },
+            { planData: planWithNote },
+            { upsert: true, new: true }
+          );
+        } catch (err) {
+          console.error("Error saving fallback plan to DB:", err);
+        }
+      }
       
       console.log("✅ Fallback meal plan generated successfully.");
       res.json({
@@ -332,5 +371,72 @@ exports.generateMealPlan = async (req, res) => {
           message: "Failed to generate meal plan. Please try again." 
         });
     }
+  }
+};
+
+// @desc    Get current user's active diet plan
+// @route   GET /api/ai/my-plan
+// @access  Private
+exports.getMyPlan = async (req, res) => {
+  try {
+    console.log("🔍 Fetching plan for user:", req.user._id);
+    const dietPlan = await DietPlan.findOne({ userId: req.user._id });
+    
+    if (!dietPlan) {
+      console.log("⚠️ No plan found in DB for user:", req.user._id);
+      return res.status(404).json({
+        success: false,
+        message: "No active diet plan found"
+      });
+    }
+
+    console.log("✅ Plan found in DB. ID:", dietPlan._id);
+    res.status(200).json({
+      success: true,
+      plan: dietPlan.planData
+    });
+  } catch (error) {
+    console.error("❌ Error fetching user plan:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error"
+    });
+  }
+};
+
+// @desc    Save a manually generated plan or update existing
+// @route   POST /api/ai/save-plan
+// @access  Private
+exports.savePlan = async (req, res) => {
+  try {
+    const { plan } = req.body;
+
+    if (!plan) {
+      return res.status(400).json({
+        success: false,
+        message: "No plan data provided"
+      });
+    }
+
+    console.log("💾 Saving manual/updated plan for user:", req.user._id);
+
+    const savedPlan = await DietPlan.findOneAndUpdate(
+      { userId: req.user._id },
+      { planData: plan },
+      { upsert: true, new: true }
+    );
+
+    console.log("✅ Plan saved successfully. ID:", savedPlan._id);
+
+    res.status(200).json({
+      success: true,
+      data: savedPlan
+    });
+  } catch (error) {
+    console.error("❌ Error saving plan:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error"
+    });
   }
 };

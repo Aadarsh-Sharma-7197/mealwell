@@ -65,6 +65,28 @@ export default function MealPlan() {
         }
       }
 
+      // If no local plan, try fetching from server
+      if (!aiPlan) {
+        try {
+          const res = await api.get('/ai/my-plan');
+          if (res.data.success && res.data.plan) {
+            aiPlan = res.data.plan;
+            // Infer meal types from the first day's meals
+            if (aiPlan.days && aiPlan.days.length > 0 && aiPlan.days[0].meals) {
+              selectedMealTypes = Object.keys(aiPlan.days[0].meals);
+            }
+            // Save to local storage for future use (optional but good for performance)
+            localStorage.setItem('aiMealPlan', JSON.stringify({
+              plan: aiPlan,
+              selectedMealTypes,
+              fromBackend: true
+            }));
+          }
+        } catch (err) {
+          console.log('No backend plan found or error fetching:', err.message);
+        }
+      }
+
       // If AI plan exists, use it
       if (aiPlan && aiPlan.days && aiPlan.days.length > 0) {
         setAiPlanData(aiPlan);
@@ -376,12 +398,40 @@ export default function MealPlan() {
             <p className="text-gray-600 mb-6">
               You don't have any active meal plans. Create one to get started!
             </p>
-            <Link
-              to="/create-diet-plan"
-              className="inline-block px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition"
-            >
-              Create Meal Plan
-            </Link>
+            <div className="flex flex-col gap-3 justify-center items-center">
+              <Link
+                to="/create-diet-plan"
+                className="inline-block px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition"
+              >
+                Create Meal Plan
+              </Link>
+              <button
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    const res = await api.get('/ai/my-plan');
+                    if (res.data.success && res.data.plan) {
+                      setAiPlanData(res.data.plan);
+                      localStorage.setItem('aiMealPlan', JSON.stringify({
+                         plan: res.data.plan,
+                         selectedMealTypes: ["breakfast", "lunch", "dinner"], // default
+                         fromBackend: true
+                      }));
+                      window.location.reload(); // Reload to apply
+                    } else {
+                      alert("No saved plan found on server.");
+                    }
+                  } catch (err) {
+                    alert("Failed to restore plan: " + (err.response?.data?.message || err.message));
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="text-emerald-600 font-semibold hover:text-emerald-800 underline"
+              >
+                Restore saved plan from database
+              </button>
+            </div>
           </div>
         </div>
       </div>
